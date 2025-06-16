@@ -1,7 +1,3 @@
-Of course. Here is the updated `README.md` with the Python code blocks removed, making it more concise.
-
----
-
 # OPC UA Controlled Cobot and Conveyor System
 
 This project features a 3D-printable 6-axis collaborative robot (Cobot) and a conveyor belt system, both designed to be controlled remotely via OPC UA servers running on Raspberry Pi. The system is a complete mechatronics project, including 3D CAD models, electronic circuit diagrams, and Python control scripts.
@@ -118,6 +114,7 @@ The `CAD models` directory contains all the source files for 3D printing and ass
     *   ~6 x Servo Motors (e.g., MG996R or similar)
     *   2 x Push Buttons
     *   Breadboards, jumper wires, and an appropriate power supply for the servos.
+    *   Ethernet cables and a network switch for direct connection (optional but recommended).
 *   **Software:**
     *   Python 3.7+
     *   Git
@@ -126,8 +123,8 @@ The `CAD models` directory contains all the source files for 3D printing and ass
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
-    cd <repository-folder>
+    git clone https://github.com/roshbeng/opcua_fusion_test_servers_and_hardware.git
+    cd opcua_fusion_test_servers_and_hardware
     ```
 
 2.  **Install Python dependencies:**
@@ -142,9 +139,42 @@ The `CAD models` directory contains all the source files for 3D printing and ass
     *   Ensure all servos and the Raspberry Pis have a common ground (GND). Power the servos with a separate, adequate power supply.
 
 4.  **Network Configuration:**
-    The scripts have hardcoded IP addresses: `192.168.1.3` for the cobot and `192.168.1.2` for the conveyor. You must either:
-    *   Assign these static IPs to your Raspberry Pis.
-    *   OR, modify the `endpoint` URL in each server script to match the actual IP addresses of your devices.
+    The scripts use hardcoded IP addresses: `192.168.1.3` for the cobot and `192.168.1.2` for the conveyor. You must either:
+    *   **Option A (Recommended):** Set up a direct Ethernet connection to your laptop by creating a network bridge. See the section below.
+    *   **Option B:** Assign these static IPs to your Raspberry Pis on your existing network.
+    *   **Option C:** Modify the `endpoint` URL in each server script (`opcua_cobot_server.py` and `opcua_conveyor_server.py`) to match the actual IP addresses of your devices.
+
+### 🔌 Connecting Hardware Directly via Ethernet (Network Bridge)
+
+To connect the Raspberry Pi-based hardware directly to the laptop running the client application without an external router, you can create a network bridge.
+
+#### Network Topology
+
+```
+(Internet) --- Wi-Fi ---> [ Laptop (Running Client) ] --- Ethernet ---> [ Switch ] --- Ethernet ---> [ Pi 1: Conveyor (192.168.1.2) ]
+                                                                             |
+                                                                              --- Ethernet ---> [ Pi 2: Cobot (192.168.1.3) ]
+```
+
+#### Laptop Setup Guide
+
+Your laptop must have a static IP address on the same network as the hardware. We will use the `192.168.1.x` subnet.
+
+**On Windows:**
+
+1.  Open Network Connections: Press `Win + R`, type `ncpa.cpl`, and press Enter.
+2.  **Set Static IP on Ethernet Port**: Right-click your **Ethernet** adapter > **Properties** > **Internet Protocol Version 4 (TCP/IPv4)** > **Properties**. Select "Use the following IP address" and enter:
+    -   IP address: `192.168.1.1`
+    -   Subnet mask: `255.255.255.0`
+3.  **Share Wi-Fi Connection**: Right-click your **Wi-Fi** adapter > **Properties** > **Sharing** tab. Check the box "Allow other network users to connect..." and select your **Ethernet** adapter from the dropdown.
+
+**On macOS:**
+
+1.  Open **System Settings** > **Network**.
+2.  **Set Static IP on Ethernet Port**: Select your **Ethernet** adapter > **Details...** > **TCP/IP**. Set "Configure IPv4" to **Manually** and enter:
+    -   IP Address: `192.168.1.1`
+    -   Subnet Mask: `255.255.255.0`
+3.  **Share Wi-Fi Connection**: Go to **System Settings** > **General** > **Sharing**. Turn on **Internet Sharing**. Configure it to share from **Wi-Fi** to computers using your **Ethernet** adapter.
 
 ### Running the Servers
 
@@ -164,7 +194,7 @@ You should see a message indicating that the OPC UA server has started on each d
 
 Use an OPC UA client to connect to the servers and control the hardware. The [opcua_fusion](https://github.com/roshbeng/opcua_fusion.git) project is recommended.
 
-1.  Start the client.
+1.  Start the client application on your laptop.
 2.  Connect to the Cobot server endpoint: `opc.tcp://192.168.1.3:4840/cobot_arm`
 3.  Connect to the Conveyor server endpoint: `opc.tcp://192.168.1.2:4840/conveyor`
 4.  Once connected, you can browse the OPC UA objects and call the methods (e.g., `move_arm`, `initialize`) to operate the system.
